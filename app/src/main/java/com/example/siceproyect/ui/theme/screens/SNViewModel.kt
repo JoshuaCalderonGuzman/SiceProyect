@@ -1,8 +1,11 @@
 package com.example.siceproyect.ui.theme.screens
 
+import android.app.Application
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -23,7 +26,7 @@ sealed interface SNUiState {
     object Loading : SNUiState
 }
 
-class SNViewModel(private val snRepository: SNRepository) : ViewModel() {
+class SNViewModel(private val snRepository: SNRepository, application: Application) : AndroidViewModel(application) {
     /** The mutable State that stores the status of the most recent request */
     var snUiState: SNUiState by mutableStateOf(SNUiState.Loading)
         private set
@@ -42,8 +45,18 @@ class SNViewModel(private val snRepository: SNRepository) : ViewModel() {
     fun accesoSN() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                snRepository.acceso("S22120150", "J/y5w9")
-                alumno_Datos()
+                val prefs = getApplication<Application>().getSharedPreferences("SicePrefs", Context.MODE_PRIVATE).edit()
+                prefs.clear().commit()
+                val loginResult = snRepository.acceso("S22120150", "J/y5w9")
+
+                if (loginResult.contains("RECHAZADO", ignoreCase = true) || loginResult.isEmpty()) {
+                    snUiState = SNUiState.Error
+                } else {
+                    val infoAlumno = snRepository.alumno_Datos()
+                    launch(Dispatchers.Main) {
+                        snUiState = SNUiState.Success(infoAlumno)
+                    }
+                }
             } catch (e: Exception) {
                 snUiState = SNUiState.Error
             }
@@ -62,7 +75,7 @@ class SNViewModel(private val snRepository: SNRepository) : ViewModel() {
             initializer {
                 val application = (this[APPLICATION_KEY] as SICENETApplication)
                 val snRepository = application.container.snRepository
-                SNViewModel(snRepository = snRepository)
+                SNViewModel(snRepository = snRepository, application = application)
             }
         }
     }

@@ -14,12 +14,11 @@ class AddCookiesInterceptor(// We're storing our stuff in a database made just f
 ) : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
-        val builder: Request.Builder = chain.request().newBuilder()
-        val preferences = PreferenceManager
-            .getDefaultSharedPreferences(context)
-            .getStringSet(PREF_COOKIES, emptySet())
+        val builder = chain.request().newBuilder()
+        val cookies = context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
+            .getStringSet("cookies", HashSet()) as HashSet<String>
 
-        preferences?.forEach { cookie ->
+        for (cookie in cookies) {
             builder.addHeader("Cookie", cookie)
         }
         return chain.proceed(builder.build())

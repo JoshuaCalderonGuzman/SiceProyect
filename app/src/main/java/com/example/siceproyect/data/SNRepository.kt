@@ -15,25 +15,19 @@ interface SNRepository {
 class NetworSNRepository(
     private val snApiService: SICENETWService
 ) : com.example.siceproyect.data.SNRepository {
+    private var sessionCookie: String? = null
     /** Fetches list of MarsPhoto from marsApi*/
     override suspend fun acceso(m: String, p: String): String {
+        val response = snApiService.acceso(bodyacceso.format(m, p).toRequestBody())
+        val xml = response.string()
 
-        //callHTTPS()
-        val res = snApiService.acceso(bodyacceso.format(m,p).toRequestBody() )
-
-        Log.d("RXML", res.string() )
-        /* Log.d("RXML", res.body?.accesoLoginResponse?.accesoLoginResult.toString() )
-
-         return res.body?.accesoLoginResponse?.accesoLoginResult.toString()*/
-        /*Log.d("RXML", res.message() )
-        return res.message()*/
-        return ""
+        return xml.substringAfter("<accesoLoginResult>")
+            .substringBefore("</accesoLoginResult>")
     }
 
     override suspend fun alumno_Datos(): String {
-        val ret = snApiService.alumno_Datos(datos.toRequestBody() )
-        Log.d("RXML", ret.string() )
-        return ""
+        val ret = snApiService.alumno_Datos(datos.toRequestBody())
+        return ret.string()
     }
 
 

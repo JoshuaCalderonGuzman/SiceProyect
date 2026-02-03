@@ -11,20 +11,12 @@ class ReceivedCookiesInterceptor // AddCookiesInterceptor()
     (private val context: Context) : Interceptor {
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
-        val originalResponse: Response = chain.proceed(chain.request())
-        if (!originalResponse.headers("Set-Cookie").isEmpty()) {
-            val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-            val cookies = prefs.getStringSet(PREF_COOKIES, emptySet())?.toMutableSet()
-                ?: mutableSetOf()
+        val originalResponse = chain.proceed(chain.request())
 
-            for (header in originalResponse.headers("Set-Cookie")) {
-                cookies.add(header)
-            }
-
-            prefs.edit()
-                .putStringSet(PREF_COOKIES, cookies)
-                .apply()
-
+        if (originalResponse.headers("Set-Cookie").isNotEmpty()) {
+            val cookies = originalResponse.headers("Set-Cookie")
+            val sharedPref = context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE).edit()
+            sharedPref.putStringSet("cookies", cookies.toSet()).apply()
         }
         return originalResponse
     }
