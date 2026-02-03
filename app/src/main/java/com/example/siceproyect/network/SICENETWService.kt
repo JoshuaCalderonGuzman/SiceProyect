@@ -37,7 +37,7 @@ interface SICENETWService {
     // sicenet.surguanajuato.tecnm.mx
     @Headers(
         "Content-Type: text/xml;charset=utf-8",
-        "SOAPAction: \"http://tempuri.org/accesoLogin\"",
+        "SOAPAction: http://tempuri.org/accesoLogin",
         //"Cookie: .ASPXANONYMOUS=MaWJCZ-X2gEkAAAAODU2ZjkyM2EtNWE3ZC00NTdlLWFhYTAtYjk5ZTE5MDlkODIzeI1pCwvskL6aqtre4eT8Atfq2Po1;.ASPXANONYMOUS=MaWJCZ-X2gEkAAAAODU2ZjkyM2EtNWE3ZC00NTdlLWFhYTAtYjk5ZTE5MDlkODIzeI1pCwvskL6aqtre4eT8Atfq2Po1;"
     )
     @POST("/ws/wsalumnos.asmx")
@@ -45,7 +45,7 @@ interface SICENETWService {
 
     @Headers(
         "Content-Type: text/xml;charset=utf-8",
-        "SOAPAction: \"http://tempuri.org/getAlumnoAcademicoWithLineamiento\"",
+        "SOAPAction: http://tempuri.org/getAlumnoAcademicoWithLineamiento",
     )
     @POST("/ws/wsalumnos.asmx")
     suspend fun alumno_Datos(@Body soap: RequestBody): ResponseBody

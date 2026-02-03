@@ -5,29 +5,41 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import com.example.siceproyect.network.SICENETWService
+import retrofit2.converter.simplexml.SimpleXmlConverterFactory
 
 interface AppContainer {
     val snRepository: SNRepository
 }
 
-class DefaultAppContainer(
-    private val context: Context
-) : AppContainer {
+class DefaultAppContainer(applicationContext: Context) : com.example.siceproyect.data.AppContainer {
+    private val baseUrlSN = "https://sicenet.surguanajuato.tecnm.mx"
+    private var client: OkHttpClient
+    init {
+        client = OkHttpClient()
+        val builder = OkHttpClient.Builder()
 
-    private val baseUrlSN = "https://sicenet.surguanajuato.tecnm.mx/"
+        builder.addInterceptor(AddCookiesInterceptor(applicationContext)) // VERY VERY IMPORTANT
 
-    private val okHttpClient = OkHttpClient.Builder()
-        .cookieJar(SimpleCookieJar())
-        .build()
+        builder.addInterceptor(ReceivedCookiesInterceptor(applicationContext)) // VERY VERY IMPORTANT
 
-    private val retrofit = Retrofit.Builder()
+        client = builder.build()
+    }
+
+
+    private val retrofitSN: Retrofit = Retrofit.Builder()
         .baseUrl(baseUrlSN)
-        .client(okHttpClient)
-        .addConverterFactory(ScalarsConverterFactory.create())
+        .addConverterFactory(SimpleXmlConverterFactory.createNonStrict())
+        .client(client)
         .build()
 
-    private val snService = retrofit.create(SICENETWService::class.java)
+    //bodyacceso.toRequestBody("text/xml; charset=utf-8".toMediaType())
 
-    override val snRepository: SNRepository =
-        NetworkSNRepository(snService)
+
+    private val retrofitServiceSN: SICENETWService by lazy {
+        retrofitSN.create(SICENETWService::class.java)
+    }
+
+    override val snRepository: NetworSNRepository by lazy {
+        NetworSNRepository(retrofitServiceSN)
+    }
 }

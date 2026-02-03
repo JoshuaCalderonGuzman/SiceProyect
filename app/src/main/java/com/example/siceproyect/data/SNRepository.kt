@@ -12,34 +12,30 @@ interface SNRepository {
     suspend fun alumno_Datos(): String
 }
 
-class NetworkSNRepository(
+class NetworSNRepository(
     private val snApiService: SICENETWService
-) : SNRepository {
-
+) : com.example.siceproyect.data.SNRepository {
+    /** Fetches list of MarsPhoto from marsApi*/
     override suspend fun acceso(m: String, p: String): String {
 
-        val requestBody = bodyacceso
-            .format(m, p)
-            .toRequestBody("text/xml; charset=utf-8".toMediaType())
+        //callHTTPS()
+        val res = snApiService.acceso(bodyacceso.format(m,p).toRequestBody() )
 
-        val response = snApiService.acceso(requestBody)
+        Log.d("RXML", res.string() )
+        /* Log.d("RXML", res.body?.accesoLoginResponse?.accesoLoginResult.toString() )
 
-        val xml = response.string()
-        Log.d("SOAP_LOGIN", xml)
-
-        return xml
+         return res.body?.accesoLoginResponse?.accesoLoginResult.toString()*/
+        /*Log.d("RXML", res.message() )
+        return res.message()*/
+        return ""
     }
 
     override suspend fun alumno_Datos(): String {
-
-        val requestBody =
-            datos.toRequestBody("text/xml; charset=utf-8".toMediaType())
-
-        val response = snApiService.alumno_Datos(requestBody)
-
-        val xml = response.string()
-        Log.d("SOAP_DATOS", xml)
-
-        return xml
+        val ret = snApiService.alumno_Datos(datos.toRequestBody() )
+        Log.d("RXML", ret.string() )
+        return ""
     }
+
+
+
 }

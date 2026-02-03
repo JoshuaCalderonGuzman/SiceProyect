@@ -13,8 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.siceproyect.ui.theme.SiceProyectTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.siceproyect.screens.SNViewModel
-import com.example.siceproyect.screens.SNUiState
+import com.example.siceproyect.ui.theme.screens.SNViewModel
+import com.example.siceproyect.ui.theme.screens.SNUiState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
