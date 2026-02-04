@@ -99,38 +99,7 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
 
         snUiState = SNUiState.Loading
     }
-    fun isLogged(): Boolean {
-        val prefs = getApplication<Application>()
-            .getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
-        return prefs.getBoolean("logged", false)
-    }
-    fun accesoSN() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val prefs = getApplication<Application>().getSharedPreferences("SicePrefs", Context.MODE_PRIVATE).edit()
-                prefs.clear().commit()
-                val loginResult = snRepository.acceso("S22120166", "r=8A7w")
 
-                if (loginResult.contains("RECHAZADO", ignoreCase = true) || loginResult.isEmpty()) {
-                    snUiState = SNUiState.Error
-                } else {
-                    val infoAlumno = snRepository.alumno_Datos()
-                    launch(Dispatchers.Main) {
-                        snUiState = SNUiState.Success(infoAlumno)
-                    }
-                }
-            } catch (e: Exception) {
-                snUiState = SNUiState.Error
-            }
-        }
-    }
-    fun alumno_Datos() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val listResult = snRepository.alumno_Datos()
-            SNUiState.Success(listResult)
-        }
-
-    }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
