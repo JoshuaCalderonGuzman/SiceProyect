@@ -2,7 +2,6 @@ package com.example.siceproyect.data
 
 import android.content.Context
 import android.preference.PreferenceManager
-import com.example.siceproyect.data.AddCookiesInterceptor.Companion.PREF_COOKIES
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException

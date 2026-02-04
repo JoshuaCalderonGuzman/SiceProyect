@@ -24,7 +24,5 @@ class AddCookiesInterceptor(// We're storing our stuff in a database made just f
         return chain.proceed(builder.build())
     }
 
-    companion object {
-        const val PREF_COOKIES = "PREF_COOKIES"
-    }
+
 }

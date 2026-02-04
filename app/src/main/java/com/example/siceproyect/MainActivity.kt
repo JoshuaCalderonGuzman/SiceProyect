@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.siceproyect.ui.theme.SiceProyectTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.siceproyect.ui.theme.screens.HomeScreen
+import com.example.siceproyect.ui.theme.screens.LoginScreen
 import com.example.siceproyect.ui.theme.screens.SNViewModel
 import com.example.siceproyect.ui.theme.screens.SNUiState
 
@@ -25,30 +29,28 @@ class MainActivity : ComponentActivity() {
                 val snViewModel: SNViewModel =
                     viewModel(factory = SNViewModel.Factory)
 
-                val uiState = snViewModel.snUiState
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { padding ->
-                    when (uiState) {
+
+                Scaffold { padding ->
+
+                    when (snViewModel.snUiState) {
+
                         is SNUiState.Loading -> {
-                            Text(
-                                text = "Cargando...",
-                                modifier = Modifier.padding(padding)
-                            )
+                            LoginScreen(snViewModel)
                         }
 
                         is SNUiState.Success -> {
-                            Text(
-                                text = "LOGIN OK\n\n${uiState.accesoLogin}",
-                                modifier = Modifier.padding(padding)
+                            HomeScreen(
+                                snViewModel = snViewModel,
+                                padding = padding
                             )
                         }
 
                         is SNUiState.Error -> {
-                            Text(
-                                text = "ERROR en SICENET",
-                                modifier = Modifier.padding(padding)
-                            )
+                            LoginScreen(snViewModel)
                         }
+
+                        else -> {}
                     }
                 }
             }
