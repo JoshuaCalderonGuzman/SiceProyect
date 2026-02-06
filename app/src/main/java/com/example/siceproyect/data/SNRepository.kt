@@ -18,6 +18,7 @@ class NetworSNRepository(
     private var sessionCookie: String? = null
     /** Fetches list of MarsPhoto from marsApi*/
     override suspend fun acceso(m: String, p: String): String {
+        snApiService.con()
         val response = snApiService.acceso(bodyacceso.format(m, p).toRequestBody())
         val xml = response.string()
 
