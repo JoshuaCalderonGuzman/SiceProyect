@@ -23,16 +23,17 @@ import kotlinx.coroutines.withContext
  * UI state for the Home screen
  */
 sealed interface SNUiState {
+
     object Idle : SNUiState
-    data class Success(val accesoLogin: String) : SNUiState
-    object Error : SNUiState
     object Loading : SNUiState
+    object Success : SNUiState
+    data class Error(val message: String) : SNUiState
 
 }
 
 class SNViewModel(private val snRepository: SNRepository, application: Application) : AndroidViewModel(application) {
     /** The mutable State that stores the status of the most recent request */
-    var snUiState: SNUiState by mutableStateOf(SNUiState.Loading)
+    var snUiState by mutableStateOf<SNUiState>(SNUiState.Idle)
         private set
     var alumno by mutableStateOf<com.example.siceproyect.data.Alumno?>(null)
         private set
@@ -49,41 +50,33 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
 
     fun login(matricula: String, password: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                withContext(Dispatchers.Main) {
-                    snUiState = SNUiState.Loading
-                }
 
-                getApplication<Application>()
-                    .getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
-                    .edit().clear().apply()
+            withContext(Dispatchers.Main) {
+                snUiState = SNUiState.Loading
+            }
+
+            try {
 
                 val loginResult = snRepository.acceso(matricula, password)
 
                 if (loginResult.contains("RECHAZADO", true) || loginResult.isEmpty()) {
                     withContext(Dispatchers.Main) {
-                        snUiState = SNUiState.Error
+                        snUiState = SNUiState.Error("Usuario o contraseña incorrectos")
                     }
                     return@launch
                 }
 
-                getApplication<Application>()
-                    .getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
-                    .edit().putBoolean("logged", true).apply()
-
                 val xmlAlumno = snRepository.alumno_Datos()
-                withContext(Dispatchers.Main) {
-                    alumno = parseAlumno(xmlAlumno)
-                    snUiState = SNUiState.Success("OK")
-                }
+                val alumnoParsed = parseAlumno(xmlAlumno)
 
                 withContext(Dispatchers.Main) {
-                    snUiState = SNUiState.Success(xmlAlumno)
+                    alumno = alumnoParsed
+                    snUiState = SNUiState.Success
                 }
 
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    snUiState = SNUiState.Error
+                    snUiState = SNUiState.Error("Error de conexión")
                 }
             }
         }
@@ -96,8 +89,8 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
 
         context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
             .edit().clear().apply()
-
-        snUiState = SNUiState.Loading
+        alumno = null
+        snUiState = SNUiState.Idle
     }
 
 

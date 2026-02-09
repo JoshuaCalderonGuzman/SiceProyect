@@ -35,23 +35,23 @@ class MainActivity : ComponentActivity() {
 
                     when (snViewModel.snUiState) {
 
+                        is SNUiState.Idle,
+                        is SNUiState.Error,
                         is SNUiState.Loading -> {
+
                             LoginScreen(snViewModel)
+
                         }
 
                         is SNUiState.Success -> {
+
                             HomeScreen(
                                 snViewModel = snViewModel,
                                 padding = padding
                             )
                         }
-
-                        is SNUiState.Error -> {
-                            LoginScreen(snViewModel)
-                        }
-
-                        else -> {}
                     }
+
                 }
             }
         }

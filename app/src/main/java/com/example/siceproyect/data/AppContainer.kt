@@ -21,8 +21,7 @@ class DefaultAppContainer(applicationContext: Context) : AppContainer {
 
     private val retrofitSN = Retrofit.Builder()
         .baseUrl(baseUrlSN)
-        .client(client) // Usamos el cliente con interceptores
-        // Eliminamos conversores por ahora ya que usas ResponseBody manual
+        .client(client)
         .build()
 
     private val retrofitServiceSN: SICENETWService by lazy {
