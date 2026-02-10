@@ -3,9 +3,7 @@ package com.example.siceproyect.data
 import android.content.Context
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.scalars.ScalarsConverterFactory
 import com.example.siceproyect.network.SICENETWService
-import retrofit2.converter.simplexml.SimpleXmlConverterFactory
 
 interface AppContainer {
     val snRepository: SNRepository

@@ -1,6 +1,5 @@
 package com.example.siceproyect.data
 
-import android.R
 import org.json.JSONObject
 
 data class Alumno(

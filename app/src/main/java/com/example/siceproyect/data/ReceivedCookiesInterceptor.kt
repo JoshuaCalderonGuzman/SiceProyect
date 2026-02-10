@@ -1,10 +1,10 @@
 package com.example.siceproyect.data
 
 import android.content.Context
-import android.preference.PreferenceManager
 import okhttp3.Interceptor
 import okhttp3.Response
 import java.io.IOException
+import androidx.core.content.edit
 
 class ReceivedCookiesInterceptor // AddCookiesInterceptor()
     (private val context: Context) : Interceptor {
@@ -14,8 +14,9 @@ class ReceivedCookiesInterceptor // AddCookiesInterceptor()
 
         if (originalResponse.headers("Set-Cookie").isNotEmpty()) {
             val cookies = originalResponse.headers("Set-Cookie")
-            val sharedPref = context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE).edit()
-            sharedPref.putStringSet("cookies", cookies.toSet()).apply()
+            context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE).edit {
+                putStringSet("cookies", cookies.toSet())
+            }
         }
         return originalResponse
     }

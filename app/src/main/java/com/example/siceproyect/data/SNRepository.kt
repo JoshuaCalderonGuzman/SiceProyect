@@ -1,10 +1,8 @@
 package com.example.siceproyect.data
 
-import android.util.Log
 import com.example.siceproyect.network.SICENETWService
 import com.example.siceproyect.network.bodyacceso
 import com.example.siceproyect.network.datos
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
 interface SNRepository {
@@ -14,10 +12,10 @@ interface SNRepository {
 
 class NetworSNRepository(
     private val snApiService: SICENETWService
-) : com.example.siceproyect.data.SNRepository {
-    private var sessionCookie: String? = null
+) : SNRepository {
     /** Fetches list of MarsPhoto from marsApi*/
     override suspend fun acceso(m: String, p: String): String {
+        //Devolver objetos
         snApiService.con()
         val response = snApiService.acceso(bodyacceso.format(m, p).toRequestBody())
         val xml = response.string()
@@ -27,6 +25,7 @@ class NetworSNRepository(
     }
 
     override suspend fun alumno_Datos(): String {
+        //Devolver objetos
         val ret = snApiService.alumno_Datos(datos.toRequestBody())
         return ret.string()
     }
