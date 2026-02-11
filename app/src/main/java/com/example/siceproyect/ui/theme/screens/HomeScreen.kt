@@ -44,7 +44,15 @@ fun HomeScreen(
             Text("Estatus: ${alumno.estatus}")
             Text("Semestre actual: ${alumno.semActual}")
             Text("Créditos acumulados: ${alumno.cdtosAcumulados}")
+            Text("Créditos actuales: ${alumno.cdtosActuales}")
             Text("Especialidad: ${alumno.especialidad}")
+            Text("Lineamiento: ${alumno.liniamiento}")
+            Text("Fecha de reinscripción: ${alumno.fechaReins}")
+            Text("Modo educativo: ${alumno.modEducativo}")
+            Text("Adeudo: ${if (alumno.adeudo) "Sí" else "No"}")
+            Text("Adeudo descriptivo: ${alumno.adeudoDescriptivo}")
+            Text("URL de la foto: ${alumno.urlFoto}")
+
         } else {
             Text("Cargando datos del alumno...")
         }

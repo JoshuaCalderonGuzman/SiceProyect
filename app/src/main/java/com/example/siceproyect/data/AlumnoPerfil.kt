@@ -1,20 +1,32 @@
 package com.example.siceproyect.data
 
+import android.util.Log
 import org.json.JSONObject
 
 data class Alumno(
-    val nombre: String,
-    val carrera: String,
-    val matricula: String,
-    val inscrito: Boolean,
-    val estatus: String,
-    val semActual: String,
-    val cdtosAcumulados: Int,
-    val especialidad: String
+    val fechaReins: String = "",
+    val modEducativo: Int = 0,
+    val adeudo: Boolean = false,
+    val urlFoto: String = "",
+    val adeudoDescriptivo: String = "",
+    val inscrito: Boolean = false,
+    val estatus: String = "",
+    val semActual: String = "",
+    val cdtosAcumulados: Int = 0,
+    val cdtosActuales: Int = 0,
+    val especialidad: String = "",
+    val carrera: String="",
+    val liniamiento: Int = 0,
+    val nombre: String = "",
+    val matricula: String = "",
+
 )
 
 fun parseAlumno(xml: String): Alumno {
-
+    val maxLogSize = 1000
+    for (i in xml.indices step maxLogSize) {
+        Log.d("XML_DEBUG", xml.substring(i, minOf(i + maxLogSize, xml.length)))
+    }
     val jsonString = xml
         .substringAfter("<getAlumnoAcademicoWithLineamientoResult>")
         .substringBefore("</getAlumnoAcademicoWithLineamientoResult>")
@@ -23,14 +35,21 @@ fun parseAlumno(xml: String): Alumno {
     val json = JSONObject(jsonString)
 
     return Alumno(
-        nombre = json.getString("nombre"),
-        carrera = json.getString("carrera"),
-        matricula = json.getString("matricula"),
-        inscrito = json.getBoolean("inscrito"),
-        estatus = json.getString("estatus"),
-        semActual = json.getString("semActual"),
-        cdtosAcumulados = json.getInt("cdtosAcumulados"),
-        especialidad = json.getString("especialidad")
+        fechaReins = json.optString("fechaReins"),
+        modEducativo = json.optInt("modEducativo"),
+        adeudo = json.optBoolean("adeudo"),
+        urlFoto = json.optString("urlFoto"),
+        adeudoDescriptivo = json.optString("adeudoDescriptivo"),
+        inscrito = json.optBoolean("inscrito"),
+        estatus = json.optString("estatus"),
+        semActual = json.optString("semActual"),
+        cdtosAcumulados = json.optInt("cdtosAcumulados"),
+        cdtosActuales = json.optInt("cdtosActuales"),
+        especialidad = json.optString("especialidad"),
+        carrera = json.optString("carrera"),
+        liniamiento = json.optInt("liniamiento"),
+        nombre = json.optString("nombre"),
+        matricula = json.optString("matricula")
 
     )
 }
