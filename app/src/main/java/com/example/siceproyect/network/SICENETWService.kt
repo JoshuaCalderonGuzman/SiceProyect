@@ -48,7 +48,7 @@ interface SICENETWService {
         "SOAPAction: http://tempuri.org/getAlumnoAcademicoWithLineamiento",
     )
     @POST("/ws/wsalumnos.asmx")
-    suspend fun alumno_Datos(@Body soap: RequestBody): ResponseBody
+    suspend fun alumnoDatos(@Body soap: RequestBody): ResponseBody
 
     @GET("/")
     suspend fun con (): ResponseBody

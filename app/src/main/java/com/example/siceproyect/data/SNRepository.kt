@@ -7,7 +7,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 
 interface SNRepository {
     suspend fun acceso(m: String, p: String): LoginResult
-    suspend fun alumno_Datos(): Alumno
+    suspend fun alumnoDatos(): Alumno
 }
 
 class NetworSNRepository(
@@ -30,9 +30,9 @@ class NetworSNRepository(
     }
 
 
-    override suspend fun alumno_Datos(): Alumno {
+    override suspend fun alumnoDatos(): Alumno {
         //Devolver objetos
-        val response = snApiService.alumno_Datos(datos.toRequestBody())
+        val response = snApiService.alumnoDatos(datos.toRequestBody())
         val xml = response.string()
         return parseAlumno(xml)
 

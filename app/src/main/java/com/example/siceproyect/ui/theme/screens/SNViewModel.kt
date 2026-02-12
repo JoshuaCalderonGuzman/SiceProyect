@@ -6,7 +6,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
@@ -14,10 +13,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.siceproyect.SICENETApplication
 import com.example.siceproyect.data.SNRepository
-import com.example.siceproyect.data.parseAlumno
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.content.edit
 
 /**
  * UI state for the Home screen
@@ -43,10 +42,7 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
      */
 
 
-    /**
-     * Gets Mars photos information from the Mars API Retrofit service and updates the
-     * [MarsPhoto] [List] [MutableList].
-     */
+
 
     fun login(matricula: String, password: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -66,14 +62,14 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
                     return@launch
                 }
 
-                val alumnoParsed = snRepository.alumno_Datos()
+                val alumnoParsed = snRepository.alumnoDatos()
 
                 withContext(Dispatchers.Main) {
                     alumno = alumnoParsed
                     snUiState = SNUiState.Success
                 }
 
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 withContext(Dispatchers.Main) {
                     snUiState = SNUiState.Error("Error de conexión")
                 }
@@ -84,10 +80,10 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
         val context = getApplication<Application>()
 
         context.getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
-            .edit().clear().apply()
+            .edit { clear() }
 
         context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
-            .edit().clear().apply()
+            .edit { clear() }
         alumno = null
         snUiState = SNUiState.Idle
     }
