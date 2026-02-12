@@ -59,15 +59,14 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
 
                 val loginResult = snRepository.acceso(matricula, password)
 
-                if (loginResult.contains("RECHAZADO", true) || loginResult.isEmpty()) {
+                if (!loginResult.success) {
                     withContext(Dispatchers.Main) {
                         snUiState = SNUiState.Error("Usuario o contraseña incorrectos")
                     }
                     return@launch
                 }
 
-                val xmlAlumno = snRepository.alumno_Datos()
-                val alumnoParsed = parseAlumno(xmlAlumno)
+                val alumnoParsed = snRepository.alumno_Datos()
 
                 withContext(Dispatchers.Main) {
                     alumno = alumnoParsed
