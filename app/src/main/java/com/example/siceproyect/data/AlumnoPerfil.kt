@@ -23,10 +23,9 @@ data class Alumno(
 )
 
 fun parseAlumno(xml: String): Alumno {
-    val maxLogSize = 1000
-    for (i in xml.indices step maxLogSize) {
-        Log.d("XML_DEBUG", xml.substring(i, minOf(i + maxLogSize, xml.length)))
-    }
+
+
+
     val jsonString = xml
         .substringAfter("<getAlumnoAcademicoWithLineamientoResult>")
         .substringBefore("</getAlumnoAcademicoWithLineamientoResult>")

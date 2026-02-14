@@ -2,6 +2,7 @@ package com.example.siceproyect.ui.theme.screens
 
 import android.app.Application
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,7 +14,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.siceproyect.SICENETApplication
 import com.example.siceproyect.data.SNRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
 import com.example.siceproyect.data.Alumno
@@ -45,6 +45,9 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
     fun login(matricula: String, password: String) {
         viewModelScope.launch {
 
+            val context = getApplication<Application>()
+            context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
+                .edit { clear() }
             uiState = uiState.copy(
                 isLoading = true,
                 errorMessage = null
@@ -69,6 +72,7 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
                     isLogged = true,
                     alumno = alumnoParsed
                 )
+
 
             } catch (_: Exception) {
                 uiState = uiState.copy(
