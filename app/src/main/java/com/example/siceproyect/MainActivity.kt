@@ -14,7 +14,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.siceproyect.ui.theme.screens.HomeScreen
 import com.example.siceproyect.ui.theme.screens.LoginScreen
 import com.example.siceproyect.ui.theme.screens.SNViewModel
-import com.example.siceproyect.ui.theme.screens.SNUiState
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,28 +23,26 @@ class MainActivity : ComponentActivity() {
             SiceProyectTheme {
                 val snViewModel: SNViewModel =
                     viewModel(factory = SNViewModel.Factory)
-
+                val uiState = snViewModel.uiState
 
 
                 Scaffold { padding ->
 
-                    when (snViewModel.snUiState) {
+                    if (uiState.isLogged) {
 
-                        is SNUiState.Idle,
-                        is SNUiState.Error,
-                        is SNUiState.Loading -> {
+                        HomeScreen(
+                            alumno = uiState.alumno,
+                            padding = padding,
+                            onLogout = { snViewModel.logout() }
+                        )
 
-                            LoginScreen(snViewModel)
+                    } else {
 
-                        }
+                        LoginScreen(
+                            uiState = uiState,
+                            onLogin = { m, p -> snViewModel.login(m, p) }
+                        )
 
-                        is SNUiState.Success -> {
-
-                            HomeScreen(
-                                snViewModel = snViewModel,
-                                padding = padding
-                            )
-                        }
                     }
 
                 }

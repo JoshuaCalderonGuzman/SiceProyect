@@ -13,14 +13,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.siceproyect.data.Alumno
 
 
 @Composable
 fun HomeScreen(
-    snViewModel: SNViewModel,
-    padding: PaddingValues
+    alumno: Alumno?,
+    padding: PaddingValues,
+    onLogout: () -> Unit
 ) {
-    val alumno = snViewModel.alumno
 
     Column(
         modifier = Modifier
@@ -59,7 +60,7 @@ fun HomeScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        Button(onClick = { snViewModel.logout() }) {
+        Button(onClick = onLogout) {
             Text("Cerrar sesión")
         }
     }

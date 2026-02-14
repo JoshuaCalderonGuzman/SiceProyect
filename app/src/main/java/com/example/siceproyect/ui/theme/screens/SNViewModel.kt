@@ -15,26 +15,24 @@ import com.example.siceproyect.SICENETApplication
 import com.example.siceproyect.data.SNRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import androidx.core.content.edit
+import com.example.siceproyect.data.Alumno
 
 /**
  * UI state for the Home screen
  */
-sealed interface SNUiState {
+data class SNUiState (
 
-    object Idle : SNUiState
-    object Loading : SNUiState
-    object Success : SNUiState
-    data class Error(val message: String) : SNUiState
+    val isLoading: Boolean = false,
+    val isLogged: Boolean = false,
+    val alumno: Alumno? = null,
+    val errorMessage: String? = null
 
-}
+)
 
 class SNViewModel(private val snRepository: SNRepository, application: Application) : AndroidViewModel(application) {
     /** The mutable State that stores the status of the most recent request */
-    var snUiState by mutableStateOf<SNUiState>(SNUiState.Idle)
-        private set
-    var alumno by mutableStateOf<com.example.siceproyect.data.Alumno?>(null)
+    var uiState by mutableStateOf<SNUiState>(SNUiState())
         private set
 
     /**
@@ -45,34 +43,38 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
 
 
     fun login(matricula: String, password: String) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
 
-            withContext(Dispatchers.Main) {
-                snUiState = SNUiState.Loading
-            }
+            uiState = uiState.copy(
+                isLoading = true,
+                errorMessage = null
+            )
 
             try {
 
                 val loginResult = snRepository.acceso(matricula, password)
 
                 if (!loginResult.success) {
-                    withContext(Dispatchers.Main) {
-                        snUiState = SNUiState.Error("Usuario o contraseña incorrectos")
-                    }
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        errorMessage = "Usuario o contraseña incorrectos"
+                    )
                     return@launch
                 }
 
                 val alumnoParsed = snRepository.alumnoDatos()
 
-                withContext(Dispatchers.Main) {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    isLogged = true,
                     alumno = alumnoParsed
-                    snUiState = SNUiState.Success
-                }
+                )
 
             } catch (_: Exception) {
-                withContext(Dispatchers.Main) {
-                    snUiState = SNUiState.Error("Error de conexión")
-                }
+                uiState = uiState.copy(
+                    isLoading = false,
+                    errorMessage = "Error de conexión"
+                )
             }
         }
     }
@@ -84,8 +86,7 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
 
         context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
             .edit { clear() }
-        alumno = null
-        snUiState = SNUiState.Idle
+        uiState = SNUiState()
     }
 
 

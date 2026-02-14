@@ -9,12 +9,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoginScreen(
-    snViewModel: SNViewModel
+    uiState: SNUiState,
+    onLogin: (String, String) -> Unit
 ) {
     var matricula by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
-    val uiState = snViewModel.snUiState
 
     Column(
         modifier = Modifier
@@ -43,20 +42,21 @@ fun LoginScreen(
         Spacer(Modifier.height(20.dp))
 
         Button(
-            onClick = {
-                snViewModel.login(matricula, password)
-            },
-            modifier = Modifier.fillMaxWidth()
+            onClick = { onLogin(matricula, password) },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !uiState.isLoading
         ) {
             Text("Ingresar")
         }
 
         Spacer(Modifier.height(20.dp))
 
-        when (uiState) {
-            is SNUiState.Loading -> Text("Cargando...")
-            is SNUiState.Error -> Text(" Usuario o contraseña incorrectos")
-            else -> {}
+        if (uiState.isLoading) {
+            Text("Cargando...")
+        }
+
+        uiState.errorMessage?.let {
+            Text(it)
         }
     }
 }
