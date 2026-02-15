@@ -14,10 +14,10 @@ import okhttp3.RequestBody.Companion.toRequestBody
 interface SNRepository {
     suspend fun acceso(m: String, p: String): LoginResult
     suspend fun alumnoDatos(): Alumno
-    suspend fun kardex(): String
-    suspend fun califFianl(): String
-    suspend fun califUnidades(): String
-    suspend fun cargaAcademica(): String
+    suspend fun kardex(lineamiento: Int): KardexCompleto
+    suspend fun califFinal(lineamiento: Int): List<CalificacionFinal>
+    suspend fun califUnidades():  List<MateriaUnidades>
+    suspend fun cargaAcademica(): List<MateriaCarga>
 
 }
 
@@ -50,59 +50,61 @@ class NetworSNRepository(
         return parseAlumno(xml)
 
     }
-    override suspend fun kardex(): String {
+    override suspend fun kardex(lineamiento: Int): KardexCompleto {
         return try {
 
-            val body = cardex.format("2").toRequestBody("text/xml".toMediaTypeOrNull())
+            val body = cardex.format(lineamiento.toString()).toRequestBody("text/xml".toMediaTypeOrNull())
             val response = snApiService.cardex(body)
             val xml = response.string()
 
             logXML(xml, "KARDEX_SUCCESS")
-            xml
+            parseKardex(xml)
         } catch (e: Exception) {
             Log.e("KARDEX_ERROR", {e.message}.toString())
-            "Error"
+            KardexCompleto(emptyList(), KardexResumen(0.0, 0, 0, 0.0))
         }
     }
-    override suspend fun califFianl(): String {
+    override suspend fun califFinal(lineamiento: Int):  List<CalificacionFinal> {
         return try {
 
-            val body = califFinal.format("2").toRequestBody("text/xml".toMediaTypeOrNull())
+            val body = califFinal.format(lineamiento.toString()).toRequestBody("text/xml".toMediaTypeOrNull())
             val response = snApiService.califFinal(body)
             val xml = response.string()
 
             logXML(xml, "CALIFFINAL_SUCCESS")
-            xml
+            parseCalifFinal(xml)
         } catch (e: Exception) {
             Log.e("CALIFFINAL_ERROR", {e.message}.toString())
-            "Error"
+            emptyList()
         }
     }
-    override suspend fun califUnidades(): String {
+    override suspend fun califUnidades():  List<MateriaUnidades> {
         return try {
 
-            val response = snApiService.califUnidades(califUnidades.toRequestBody())
+            val body = califUnidades.toRequestBody("text/xml".toMediaTypeOrNull())
+            val response = snApiService.califUnidades(body)
             val xml = response.string()
 
             logXML(xml, "CALIFUNIDADES_SUCCESS")
-            xml
+            parseUnidades(xml)
         } catch (e: Exception) {
             Log.e("CALIFUNIDADES_ERROR", {e.message}.toString())
-            "Error"
+            emptyList()
         }
     }
 
-    override suspend fun cargaAcademica(): String {
+    override suspend fun cargaAcademica(): List<MateriaCarga> {
         return try {
 
-            val response = snApiService.cargaAcademica(cargaAcademica.toRequestBody())
+            val body = cargaAcademica.toRequestBody("text/xml".toMediaTypeOrNull())
+            val response = snApiService.cargaAcademica(body)
             val xml = response.string()
 
             logXML(xml, "CARGAACADEMICA_SUCCESS")
-            xml
+            parseCargaAcademica(xml)
         } catch (e: Exception) {
             Log.e("CARGAACADEMICA_ERROR", {e.message}.toString())
-            "Error"
+            emptyList()
         }
     }
 

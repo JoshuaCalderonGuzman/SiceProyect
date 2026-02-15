@@ -16,6 +16,12 @@ import com.example.siceproyect.data.SNRepository
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
 import com.example.siceproyect.data.Alumno
+import com.example.siceproyect.data.CalificacionFinal
+import com.example.siceproyect.data.KardexCompleto
+import com.example.siceproyect.data.MateriaCarga
+import com.example.siceproyect.data.MateriaUnidades
+import kotlinx.coroutines.async
+
 
 /**
  * UI state for the Home screen
@@ -25,6 +31,10 @@ data class SNUiState (
     val isLoading: Boolean = false,
     val isLogged: Boolean = false,
     val alumno: Alumno? = null,
+    val kardex: KardexCompleto? = null,
+    val califFinales: List<CalificacionFinal> = emptyList(),
+    val califUnidades: List<MateriaUnidades> = emptyList(),
+    val cargaAcademica: List<MateriaCarga> = emptyList(),
     val errorMessage: String? = null
 
 )
@@ -59,24 +69,28 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
                 if (!loginResult.success) {
                     uiState = uiState.copy(
                         isLoading = false,
-                        errorMessage = "Usuario o contraseña incorrectos"
+                        errorMessage = "Matrícula o contraseña incorrectos"
                     )
                     return@launch
                 }
-
                 val alumnoParsed = snRepository.alumnoDatos()
-                snRepository.kardex()
-                snRepository.califFianl()
-                snRepository.califUnidades()
-                snRepository.cargaAcademica()
+                kotlinx.coroutines.coroutineScope{
+                    val kardexDeferred = async { snRepository.kardex(alumnoParsed.modEducativo) }
+                    val califDataDeferred = async { snRepository.califFinal(alumnoParsed.modEducativo) }
+                    val unidadesDeferred = async { snRepository.califUnidades() }
+                    val cargaDeferred = async { snRepository.cargaAcademica() }
 
+                    uiState = uiState.copy(
+                        isLoading = false,
+                        isLogged = true,
+                        alumno = alumnoParsed,
+                        kardex = kardexDeferred.await(),
+                        califFinales = califDataDeferred.await(),
+                        califUnidades = unidadesDeferred.await(),
+                        cargaAcademica = cargaDeferred.await()
+                    )
 
-                uiState = uiState.copy(
-                    isLoading = false,
-                    isLogged = true,
-                    alumno = alumnoParsed
-                )
-
+                }
 
             } catch (_: Exception) {
                 uiState = uiState.copy(
