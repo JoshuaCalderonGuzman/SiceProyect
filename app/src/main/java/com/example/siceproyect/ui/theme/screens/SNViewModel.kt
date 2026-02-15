@@ -2,7 +2,6 @@ package com.example.siceproyect.ui.theme.screens
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -32,7 +31,7 @@ data class SNUiState (
 
 class SNViewModel(private val snRepository: SNRepository, application: Application) : AndroidViewModel(application) {
     /** The mutable State that stores the status of the most recent request */
-    var uiState by mutableStateOf<SNUiState>(SNUiState())
+    var uiState by mutableStateOf(SNUiState())
         private set
 
     /**
@@ -66,6 +65,11 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
                 }
 
                 val alumnoParsed = snRepository.alumnoDatos()
+                snRepository.kardex()
+                snRepository.califFianl()
+                snRepository.califUnidades()
+                snRepository.cargaAcademica()
+
 
                 uiState = uiState.copy(
                     isLoading = false,
@@ -82,6 +86,7 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
             }
         }
     }
+
     fun logout() {
         val context = getApplication<Application>()
 

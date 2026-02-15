@@ -37,7 +37,7 @@ val califFinal =
         <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
           <soap:Body>
             <getAllCalifFinalByAlumnos xmlns="http://tempuri.org/">
-              <bytModEducativo>2</bytModEducativo>
+              <bytModEducativo>%s</bytModEducativo>
             </getAllCalifFinalByAlumnos>
           </soap:Body>
         </soap:Envelope>
@@ -53,17 +53,16 @@ val califUnidades =
         </soap:Envelope>
     """.trimIndent()
 
-val cardex =
-    """
-        <?xml version="1.0" encoding="utf-8"?>
-        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-          <soap:Body>
-            <getAllKardexConPromedioByAlumno xmlns="http://tempuri.org/">
-              <aluLineamiento>2</aluLineamiento>
-            </getAllKardexConPromedioByAlumno>
-          </soap:Body>
-        </soap:Envelope>
-    """.trimIndent()
+val cardex = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+      <soap:Body>
+        <getAllKardexConPromedioByAlumno xmlns="http://tempuri.org/">
+          <aluLineamiento>%s</aluLineamiento>
+        </getAllKardexConPromedioByAlumno>
+      </soap:Body>
+    </soap:Envelope>
+""".trimIndent()
 
 val cargaAcademica =
     """
@@ -110,7 +109,7 @@ interface SICENETWService {
 
     @Headers(
         "Content-Type: text/xml; charset=utf-8",
-        "SOAPAction: http://tempuri.org/getAllKardexConPromedioByAlumno",
+        "SOAPAction: http://tempuri.org/getAllKardexConPromedioByAlumno"
     )
     @POST("/ws/wsalumnos.asmx")
     suspend fun cardex(@Body soap: RequestBody): ResponseBody
