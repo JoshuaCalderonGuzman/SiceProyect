@@ -35,8 +35,8 @@ fun LoginScreen(
             value = password,
             onValueChange = { password = it },
             label = { Text("Contraseña") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation()
+            modifier = Modifier.fillMaxWidth()
+            //visualTransformation = PasswordVisualTransformation()
         )
 
         Spacer(Modifier.height(20.dp))

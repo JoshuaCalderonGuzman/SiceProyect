@@ -2,7 +2,7 @@ package com.example.siceproyect.ui.theme.screens
 
 import android.app.Application
 import android.content.Context
-import android.util.Log.e
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -45,7 +45,9 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
     fun login(matricula: String, password: String) {
         viewModelScope.launch {
 
-
+            val context = getApplication<Application>()
+            context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
+                .edit { clear() }
             uiState = uiState.copy(
                 isLoading = true,
                 errorMessage = null
@@ -72,15 +74,10 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
                 )
 
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-
+            } catch (_: Exception) {
                 uiState = uiState.copy(
                     isLoading = false,
-                    errorMessage = when (e) {
-                        is java.io.IOException -> "Error de conexión con el servidor"
-                        else -> "Error inesperado al procesar la respuesta"
-                    }
+                    errorMessage = "Error de conexión"
                 )
             }
         }

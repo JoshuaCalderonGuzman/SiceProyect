@@ -5,7 +5,6 @@ import com.example.siceproyect.network.SICENETWService
 import com.example.siceproyect.network.bodyacceso
 import com.example.siceproyect.network.datos
 import com.example.siceproyect.network.califUnidades
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
 interface SNRepository {
@@ -19,19 +18,11 @@ class NetworSNRepository(
 ) : SNRepository {
     /** Fetches list of MarsPhoto from marsApi*/
     override suspend fun acceso(m: String, p: String): LoginResult {
-
-        val response = snApiService.acceso(
-            bodyacceso.format(m, p)
-                .toRequestBody("text/xml; charset=utf-8".toMediaType())
-        )
-
+        //Devolver objetos
+        snApiService.con()
+        val response = snApiService.acceso(bodyacceso.format(m, p).toRequestBody())
         val xml = response.string()
         logXML(xml, "Login")
-
-        if (!xml.contains("<accesoLoginResult>")) {
-            return LoginResult(false, "Respuesta inválida del servidor")
-        }
-
         val result = xml.substringAfter("<accesoLoginResult>")
             .substringBefore("</accesoLoginResult>")
 
@@ -45,7 +36,7 @@ class NetworSNRepository(
 
     override suspend fun alumnoDatos(): Alumno {
         //Devolver objetos
-        val response = snApiService.alumnoDatos(datos.toRequestBody("text/xml; charset=utf-8".toMediaType()))
+        val response = snApiService.alumnoDatos(datos.toRequestBody())
         val xml = response.string()
         logXML(xml, "AlumnoDatos")
         return parseAlumno(xml)
