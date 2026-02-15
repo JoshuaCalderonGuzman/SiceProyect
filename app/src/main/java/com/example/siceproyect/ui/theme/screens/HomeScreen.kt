@@ -52,8 +52,8 @@ fun HomeScreen(
                 DrawerItem("Inicio", Icons.Default.Home, selectedSection) {
                     selectedSection = "Inicio"; scope.launch { drawerState.close() }
                 }
-                DrawerItem("Kárdex", Icons.Default.Description, selectedSection) {
-                    selectedSection = "Kárdex"; scope.launch { drawerState.close() }
+                DrawerItem("Kardex", Icons.Default.Description, selectedSection) {
+                    selectedSection = "Kardex"; scope.launch { drawerState.close() }
                 }
                 DrawerItem("Calificaciones Finales", Icons.Default.Star, selectedSection) {
                     selectedSection = "Finales"; scope.launch { drawerState.close() }
@@ -99,7 +99,7 @@ fun HomeScreen(
                     "Inicio" -> HomeContent(alumno)
                     "Finales" -> FinalesSection(viewModel.uiState.califFinales)
                     "Unidades" -> UnidadesSection(viewModel.uiState.califUnidades)
-                    "Kárdex" -> KardexSection(viewModel.uiState.kardex)
+                    "Kardex" -> KardexSection(viewModel.uiState.kardex)
                     "Carga" -> CargaAcademicaSection(viewModel.uiState.cargaAcademica)
                     else -> PlaceholderSection(selectedSection)
                 }
@@ -167,7 +167,7 @@ fun HomeContent(alumno: Alumno?) {
                 DetailRow("Carrera", alumno.carrera)
                 DetailRow("Especialidad", alumno.especialidad)
                 DetailRow("Créditos Totales", "${alumno.cdtosAcumulados}")
-                DetailRow("Modo", "${alumno.modEducativo}")
+                DetailRow("modEducativo", "${alumno.modEducativo}")
             }
         }
 
