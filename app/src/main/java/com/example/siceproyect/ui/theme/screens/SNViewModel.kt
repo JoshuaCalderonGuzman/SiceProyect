@@ -15,11 +15,13 @@ import com.example.siceproyect.SICENETApplication
 import com.example.siceproyect.data.SNRepository
 import kotlinx.coroutines.launch
 import androidx.core.content.edit
+import androidx.work.WorkManager
 import com.example.siceproyect.data.Alumno
 import com.example.siceproyect.data.CalificacionFinal
 import com.example.siceproyect.data.KardexCompleto
 import com.example.siceproyect.data.MateriaCarga
 import com.example.siceproyect.data.MateriaUnidades
+import com.example.siceproyect.data.worker.lanzarLoginSync
 import kotlinx.coroutines.async
 
 
@@ -100,7 +102,13 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
             }
         }
     }
+    fun loginOfflineFirst(context: Context, control: String, nip: String) {
+        lanzarLoginSync(context, control, nip)
+    }
 
+    fun observarLogin(context: Context) =
+        WorkManager.getInstance(context)
+            .getWorkInfosForUniqueWorkLiveData("login_sync")
     fun logout() {
         val context = getApplication<Application>()
 
