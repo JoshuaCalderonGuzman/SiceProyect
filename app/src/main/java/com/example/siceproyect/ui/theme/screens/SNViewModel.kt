@@ -21,6 +21,8 @@ import com.example.siceproyect.data.CalificacionFinal
 import com.example.siceproyect.data.KardexCompleto
 import com.example.siceproyect.data.MateriaCarga
 import com.example.siceproyect.data.MateriaUnidades
+import com.example.siceproyect.data.local.AppDatabaseProvider
+import com.example.siceproyect.data.repository.LocalRepository
 import com.example.siceproyect.data.worker.lanzarLoginSync
 import kotlinx.coroutines.async
 
@@ -50,7 +52,9 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
      * Call getMarsPhotos() on init so we can display status immediately.
      */
 
-
+    init {
+     verificarSesionGuardada()
+    }
 
 
     fun login(matricula: String, password: String) {
@@ -59,6 +63,9 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
             val context = getApplication<Application>()
             context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
                 .edit { clear() }
+
+
+
             uiState = uiState.copy(
                 isLoading = true,
                 errorMessage = null
@@ -75,7 +82,19 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
                     )
                     return@launch
                 }
+
+
                 val alumnoParsed = snRepository.alumnoDatos()
+                val prefs = context.getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
+                prefs.edit {
+                    putString("control", alumnoParsed.matricula)
+                }
+                context.getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean("isLogged", true)
+                    .putString("control", alumnoParsed.matricula)
+                    .putString("nip", password)
+                    .apply()
                 kotlinx.coroutines.coroutineScope{
                     val kardexDeferred = async { snRepository.kardex(alumnoParsed.modEducativo) }
                     val califDataDeferred = async { snRepository.califFinal(alumnoParsed.modEducativo) }
@@ -119,6 +138,54 @@ class SNViewModel(private val snRepository: SNRepository, application: Applicati
             .edit { clear() }
         uiState = SNUiState()
     }
+    private fun verificarSesionGuardada() {
+        viewModelScope.launch {
+
+            val context = getApplication<Application>()
+            val prefs = context.getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
+
+            val control = prefs.getString("control", null)
+            val nip = prefs.getString("nip", null)
+
+            if (control != null && nip != null) {
+
+                uiState = uiState.copy(isLoading = true)
+
+                try {
+                    val loginResult = snRepository.acceso(control, nip)
+
+                    if (!loginResult.success) {
+                        logout()
+                        return@launch
+                    }
+
+                    kotlinx.coroutines.coroutineScope {
+
+                        val alumnoParsed = snRepository.alumnoDatos()
+
+                        val kardexDeferred = async { snRepository.kardex(alumnoParsed.modEducativo) }
+                        val califDataDeferred = async { snRepository.califFinal(alumnoParsed.modEducativo) }
+                        val unidadesDeferred = async { snRepository.califUnidades() }
+                        val cargaDeferred = async { snRepository.cargaAcademica() }
+
+                        uiState = uiState.copy(
+                            isLogged = true,
+                            isLoading = false,
+                            alumno = alumnoParsed,
+                            kardex = kardexDeferred.await(),
+                            califFinales = califDataDeferred.await(),
+                            califUnidades = unidadesDeferred.await(),
+                            cargaAcademica = cargaDeferred.await()
+                        )
+                    }
+
+                } catch (e: Exception) {
+                    uiState = uiState.copy(isLoading = false)
+                }
+            }
+        }
+    }
+
 
 
     companion object {

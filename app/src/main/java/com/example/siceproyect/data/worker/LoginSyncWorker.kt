@@ -32,7 +32,7 @@ class LoginSyncWorker(
             // 🔹 Paso 2: obtener datos del alumno
             val alumno = repo.alumnoDatos()
 
-            // 🔹 Enviar datos al siguiente Worker
+
             Result.success(
                 workDataOf(
                     "control" to alumno.matricula,   // ← CORREGIDO
