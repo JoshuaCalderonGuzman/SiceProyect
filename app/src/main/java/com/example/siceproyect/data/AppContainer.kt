@@ -5,9 +5,12 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import com.example.siceproyect.network.SICENETWService
 import okhttp3.logging.HttpLoggingInterceptor
+import com.example.siceproyect.data.local.AppDatabaseProvider
+import com.example.siceproyect.data.repository.LocalRepository
 
 interface AppContainer {
     val snRepository: SNRepository
+    val localRepository: LocalRepository // Agregamos el repositorio local
 }
 
 class DefaultAppContainer(applicationContext: Context) : AppContainer {
@@ -15,7 +18,7 @@ class DefaultAppContainer(applicationContext: Context) : AppContainer {
 
     private val client = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.HEADERS // Importante: ver los Headers
+            level = HttpLoggingInterceptor.Level.HEADERS
         })
         .addInterceptor(AddCookiesInterceptor(applicationContext))
         .addInterceptor(ReceivedCookiesInterceptor(applicationContext))
@@ -32,5 +35,11 @@ class DefaultAppContainer(applicationContext: Context) : AppContainer {
 
     override val snRepository: SNRepository by lazy {
         NetworSNRepository(retrofitServiceSN)
+    }
+
+    // Inicializamos el repositorio local pasándole la base de datos completa
+    override val localRepository: LocalRepository by lazy {
+        val database = AppDatabaseProvider.get(applicationContext)
+        LocalRepository(database)
     }
 }

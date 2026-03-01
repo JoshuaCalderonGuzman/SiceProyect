@@ -6,12 +6,56 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.work.WorkInfo
 import com.example.siceproyect.data.MateriaUnidades
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+// =====================================================================
+// ENVOLTURA INTELIGENTE (OFFLINE-FIRST)
+// =====================================================================
+@Composable
+fun UnidadesScreen(viewModel: SNViewModel) {
+    val context = LocalContext.current
+    val uiState = viewModel.uiState
+    val matricula = uiState.alumno?.matricula ?: return
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarUnidades(context, matricula)
+    }
+
+    val workInfos by viewModel.observarSaveUnidadesWorker(context).observeAsState(emptyList())
+
+    LaunchedEffect(workInfos) {
+        val fetchInfo = workInfos.firstOrNull()
+        if (fetchInfo?.state == WorkInfo.State.SUCCEEDED) {
+            viewModel.cargarUnidades(context, matricula)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        uiState.fechaActualizacionUnidades?.let { timestamp ->
+            val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(timestamp))
+            Surface(color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.fillMaxWidth()) {
+                Text("Última actualización: $fecha", style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(16.dp, 8.dp))
+            }
+        }
+
+        // Llamada a tu diseño original
+        UnidadesSection(materias = uiState.califUnidades ?: emptyList())
+    }
+}
+
+// =====================================================================
+// TU DISEÑO ORIGINAL (INTACTO)
+// =====================================================================
 @Composable
 fun UnidadesSection(materias: List<MateriaUnidades>) {
     LazyColumn(
@@ -35,8 +79,8 @@ fun UnidadesCard(materia: MateriaUnidades) {
             Spacer(Modifier.height(12.dp))
 
             // Flujo horizontal de unidades
+            @OptIn(ExperimentalLayoutApi::class)
             FlowRow(
-
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)

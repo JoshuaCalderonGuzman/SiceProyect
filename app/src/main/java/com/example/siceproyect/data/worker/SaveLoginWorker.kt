@@ -16,10 +16,14 @@ class SaveLoginWorker(
         val db = AppDatabaseProvider.get(applicationContext)
         val repo = LocalRepository(db)
 
+        // Obtenemos los datos pasados al Worker
+        val controlStr = inputData.getString("control") ?: return Result.failure()
+        val jsonDataStr = inputData.getString("jsonData") ?: return Result.failure()
+
+        // Creamos la entidad con el nuevo formato (usando jsonData)
         val alumno = AlumnoEntity(
-            control = inputData.getString("control")!!,
-            nombre = inputData.getString("nombre")!!,
-            carrera = inputData.getString("carrera")!!,
+            control = controlStr,
+            jsonData = jsonDataStr,
             ultimaActualizacion = System.currentTimeMillis()
         )
 

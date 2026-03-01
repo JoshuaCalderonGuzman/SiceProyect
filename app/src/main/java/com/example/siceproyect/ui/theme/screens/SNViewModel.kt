@@ -6,200 +6,257 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.siceproyect.SICENETApplication
-import com.example.siceproyect.data.SNRepository
-import kotlinx.coroutines.launch
-import androidx.core.content.edit
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.example.siceproyect.SICENETApplication
 import com.example.siceproyect.data.Alumno
 import com.example.siceproyect.data.CalificacionFinal
 import com.example.siceproyect.data.KardexCompleto
 import com.example.siceproyect.data.MateriaCarga
 import com.example.siceproyect.data.MateriaUnidades
-import com.example.siceproyect.data.local.AppDatabaseProvider
+import com.example.siceproyect.data.SNRepository
 import com.example.siceproyect.data.repository.LocalRepository
-import com.example.siceproyect.data.worker.lanzarLoginSync
+import com.example.siceproyect.data.worker.lanzarSyncCargaAcademica
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
-
-/**
- * UI state for the Home screen
- */
 data class SNUiState (
-
     val isLoading: Boolean = false,
     val isLogged: Boolean = false,
     val alumno: Alumno? = null,
     val kardex: KardexCompleto? = null,
-    val califFinales: List<CalificacionFinal> = emptyList(),
-    val califUnidades: List<MateriaUnidades> = emptyList(),
-    val cargaAcademica: List<MateriaCarga> = emptyList(),
-    val errorMessage: String? = null
-
+    val califFinales: List<CalificacionFinal>? = null,
+    val califUnidades: List<MateriaUnidades>? = null,
+    val cargaAcademica: List<MateriaCarga>? = null,
+    //Para la fecha de última actualización
+    val fechaActualizacionCarga: Long? = null,
+    val errorMessage: String? = null,
+    val fechaActualizacionKardex: Long? = null,
+    val fechaActualizacionFinales: Long? = null,
+    val fechaActualizacionUnidades: Long? = null
 )
 
-class SNViewModel(private val snRepository: SNRepository, application: Application) : AndroidViewModel(application) {
-    /** The mutable State that stores the status of the most recent request */
+class SNViewModel(
+    private val snRepository: SNRepository,
+    private val localRepository: LocalRepository, // INYECTAMOS ROOM
+    application: Application
+) : AndroidViewModel(application) {
+
     var uiState by mutableStateOf(SNUiState())
         private set
 
-    /**
-     * Call getMarsPhotos() on init so we can display status immediately.
-     */
-
-    init {
-     verificarSesionGuardada()
-    }
-
-
-    fun login(matricula: String, password: String) {
+    // Tu función de login original...
+    fun login(m: String, p: String) {
         viewModelScope.launch {
-
-            val context = getApplication<Application>()
-            context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
-                .edit { clear() }
-
-
-
-            uiState = uiState.copy(
-                isLoading = true,
-                errorMessage = null
-            )
-
+            uiState = uiState.copy(isLoading = true, errorMessage = null)
             try {
+                // 1. INTENTO ONLINE (CON INTERNET)
+                val result = snRepository.acceso(m, p)
 
-                val loginResult = snRepository.acceso(matricula, password)
+                // 🔥 Asegúrate de usar la variable correcta aquí (ej. result.accesoLocal o result.acceso)
+                if (result.success) {
 
-                if (!loginResult.success) {
-                    uiState = uiState.copy(
-                        isLoading = false,
-                        errorMessage = "Matrícula o contraseña incorrectos"
+                    val alumnoParsed = snRepository.alumnoDatos()
+
+                    // --- GUARDAMOS LA SESIÓN EN ROOM (OFFLINE) ---
+                    val jsonAlumno = Gson().toJson(alumnoParsed)
+                    val alumnoEntity = com.example.siceproyect.data.local.entity.AlumnoEntity(
+                        control = m, // Usamos la matrícula como llave primaria
+                        jsonData = jsonAlumno,
+                        ultimaActualizacion = System.currentTimeMillis()
                     )
-                    return@launch
-                }
+                    localRepository.saveAlumno(alumnoEntity)
+                    // ----------------------------------------------
 
-
-                val alumnoParsed = snRepository.alumnoDatos()
-                val prefs = context.getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
-                prefs.edit {
-                    putString("control", alumnoParsed.matricula)
-                }
-                context.getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean("isLogged", true)
-                    .putString("control", alumnoParsed.matricula)
-                    .putString("nip", password)
-                    .apply()
-                kotlinx.coroutines.coroutineScope{
+                    // RESTAURAMOS LAS DESCARGAS DE LOS DEMÁS APARTADOS
                     val kardexDeferred = async { snRepository.kardex(alumnoParsed.modEducativo) }
                     val califDataDeferred = async { snRepository.califFinal(alumnoParsed.modEducativo) }
                     val unidadesDeferred = async { snRepository.califUnidades() }
-                    val cargaDeferred = async { snRepository.cargaAcademica() }
 
                     uiState = uiState.copy(
-                        isLoading = false,
                         isLogged = true,
+                        isLoading = false,
                         alumno = alumnoParsed,
                         kardex = kardexDeferred.await(),
                         califFinales = califDataDeferred.await(),
-                        califUnidades = unidadesDeferred.await(),
-                        cargaAcademica = cargaDeferred.await()
+                        califUnidades = unidadesDeferred.await()
                     )
 
+                } else {
+                    uiState = uiState.copy(isLoading = false, errorMessage = "Credenciales incorrectas")
                 }
+            } catch (e: Exception) {
+                // 2. MODO OFFLINE (FALLÓ EL INTERNET)
 
-            } catch (_: Exception) {
-                uiState = uiState.copy(
-                    isLoading = false,
-                    errorMessage = "Error de conexión"
-                )
+                // Buscamos si el usuario ya había iniciado sesión antes
+                val alumnoLocal = localRepository.getAlumno(m)
+
+                if (alumnoLocal != null) {
+                    // Si existe en la base de datos, lo leemos y entramos
+                    val alumnoGuardado = Gson().fromJson(alumnoLocal.jsonData, Alumno::class.java)
+
+                    uiState = uiState.copy(
+                        isLogged = true,
+                        isLoading = false,
+                        alumno = alumnoGuardado,
+                        errorMessage = "Modo sin conexión" // Opcional: le avisa al usuario
+                    )
+                } else {
+                    // Si no hay internet y nunca había iniciado sesión, no lo dejamos entrar
+                    uiState = uiState.copy(isLoading = false, errorMessage = "Sin conexión a internet")
+                }
             }
         }
     }
-    fun loginOfflineFirst(context: Context, control: String, nip: String) {
-        lanzarLoginSync(context, control, nip)
-    }
-
-    fun observarLogin(context: Context) =
-        WorkManager.getInstance(context)
-            .getWorkInfosForUniqueWorkLiveData("login_sync")
     fun logout() {
-        val context = getApplication<Application>()
-
-        context.getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
-            .edit { clear() }
-
-        context.getSharedPreferences("CookiePrefs", Context.MODE_PRIVATE)
-            .edit { clear() }
+        // Restablece el estado por completo, borrando los datos y marcando isLogged como false
         uiState = SNUiState()
     }
-    private fun verificarSesionGuardada() {
+
+    // =========================================================================
+    // NUEVA FUNCIÓN: CARGA ACADÉMICA (OFFLINE FIRST)
+    // =========================================================================
+    fun cargarCargaAcademica(context: Context, matricula: String) {
         viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
 
-            val context = getApplication<Application>()
-            val prefs = context.getSharedPreferences("SicePrefs", Context.MODE_PRIVATE)
+            // 1. Buscamos en Room primero (Sin Internet)
+            val cargaLocal = localRepository.getCargaByControl(matricula)
 
-            val control = prefs.getString("control", null)
-            val nip = prefs.getString("nip", null)
+            if (cargaLocal != null) {
+                // Si hay datos guardados, los convertimos de JSON a Lista
+                val tipoLista = object : TypeToken<List<MateriaCarga>>() {}.type
+                val listaMaterias: List<MateriaCarga> = Gson().fromJson(cargaLocal.jsonData, tipoLista)
 
-            if (control != null && nip != null) {
-
-                uiState = uiState.copy(isLoading = true)
-
-                try {
-                    val loginResult = snRepository.acceso(control, nip)
-
-                    if (!loginResult.success) {
-                        logout()
-                        return@launch
-                    }
-
-                    kotlinx.coroutines.coroutineScope {
-
-                        val alumnoParsed = snRepository.alumnoDatos()
-
-                        val kardexDeferred = async { snRepository.kardex(alumnoParsed.modEducativo) }
-                        val califDataDeferred = async { snRepository.califFinal(alumnoParsed.modEducativo) }
-                        val unidadesDeferred = async { snRepository.califUnidades() }
-                        val cargaDeferred = async { snRepository.cargaAcademica() }
-
-                        uiState = uiState.copy(
-                            isLogged = true,
-                            isLoading = false,
-                            alumno = alumnoParsed,
-                            kardex = kardexDeferred.await(),
-                            califFinales = califDataDeferred.await(),
-                            califUnidades = unidadesDeferred.await(),
-                            cargaAcademica = cargaDeferred.await()
-                        )
-                    }
-
-                } catch (e: Exception) {
-                    uiState = uiState.copy(isLoading = false)
-                }
+                // Actualizamos la UI inmediatamente
+                uiState = uiState.copy(
+                    cargaAcademica = listaMaterias,
+                    fechaActualizacionCarga = cargaLocal.ultimaActualizacion,
+                    isLoading = false
+                )
+            } else {
+                uiState = uiState.copy(isLoading = false)
             }
+
+            // 2. Mandamos a los Workers a buscar internet y actualizar la BD
+            lanzarSyncCargaAcademica(context, matricula)
+        }
+    }
+    fun cargarKardex(context: Context, matricula: String, modEducativo: String) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+
+            // 1. Buscar en Room
+            val kardexLocal = localRepository.getKardexByControl(matricula)
+
+            if (kardexLocal != null) {
+                val kardexGuardado = Gson().fromJson(kardexLocal.jsonData, KardexCompleto::class.java)
+                uiState = uiState.copy(
+                    kardex = kardexGuardado,
+                    fechaActualizacionKardex = kardexLocal.ultimaActualizacion,
+                    isLoading = false
+                )
+            } else {
+                uiState = uiState.copy(isLoading = false)
+            }
+
+            // 2. Lanzar Workers
+            com.example.siceproyect.data.worker.lanzarSyncKardex(context, matricula, modEducativo)
         }
     }
 
+    // =========================================================================
+    // CALIFICACIONES FINALES
+    // =========================================================================
+    fun cargarFinales(context: Context, matricula: String, modEducativo: String) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
 
+            // 1. Buscar en Room
+            val finalesLocal = localRepository.getCalifFinalByControl(matricula)
 
+            if (finalesLocal != null) {
+                val tipoLista = object : TypeToken<List<CalificacionFinal>>() {}.type
+                val listaFinales: List<CalificacionFinal> = Gson().fromJson(finalesLocal.jsonData, tipoLista)
+
+                uiState = uiState.copy(
+                    califFinales = listaFinales,
+                    fechaActualizacionFinales = finalesLocal.ultimaActualizacion,
+                    isLoading = false
+                )
+            } else {
+                uiState = uiState.copy(isLoading = false)
+            }
+
+            // 2. Lanzar Workers
+            com.example.siceproyect.data.worker.lanzarSyncFinales(context, matricula, modEducativo)
+        }
+    }
+
+    fun observarSaveFinalesWorker(context: Context): LiveData<List<WorkInfo>> {
+        return WorkManager.getInstance(context).getWorkInfosByTagLiveData("SAVE_FINALES_TAG")
+    }
+
+    // CALIFICACIONES POR UNIDADES
+    fun cargarUnidades(context: Context, matricula: String) {
+        viewModelScope.launch {
+            uiState = uiState.copy(isLoading = true)
+
+            // 1. Buscar en Room
+            val unidadesLocal = localRepository.getCalifUnidadesByControl(matricula)
+
+            if (unidadesLocal != null) {
+                val tipoLista = object : TypeToken<List<MateriaUnidades>>() {}.type
+                val listaUnidades: List<MateriaUnidades> = Gson().fromJson(unidadesLocal.jsonData, tipoLista)
+
+                uiState = uiState.copy(
+                    califUnidades = listaUnidades,
+                    fechaActualizacionUnidades = unidadesLocal.ultimaActualizacion,
+                    isLoading = false
+                )
+            } else {
+                uiState = uiState.copy(isLoading = false)
+            }
+
+            // 2. Lanzar Workers
+            com.example.siceproyect.data.worker.lanzarSyncUnidades(context, matricula)
+        }
+    }
+
+    fun observarSaveUnidadesWorker(context: Context): LiveData<List<WorkInfo>> {
+        return WorkManager.getInstance(context).getWorkInfosByTagLiveData("SAVE_UNIDADES_TAG")
+    }
+    fun observarFetchKardexWorker(context: Context) =
+        WorkManager.getInstance(context).getWorkInfosByTagLiveData("FETCH_KARDEX_TAG")
+
+    // Función para que la UI sepa cuándo el Worker terminó
+    fun observarFetchCargaWorker(context: Context): LiveData<List<WorkInfo>> {
+        return WorkManager.getInstance(context)
+            .getWorkInfosByTagLiveData("FETCH_CARGA_TAG")
+    }
+
+    // FACTORY (ACTUALIZADO PARA INYECTAR LOCAL REPOSITORY)
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as SICENETApplication)
                 val snRepository = application.container.snRepository
-                SNViewModel(snRepository = snRepository, application = application)
+                val localRepository = application.container.localRepository
+
+                SNViewModel(
+                    snRepository = snRepository,
+                    localRepository = localRepository,
+                    application = application
+                )
             }
         }
     }
-
-
-
-
-
 }

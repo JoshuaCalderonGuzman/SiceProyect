@@ -9,15 +9,59 @@ import androidx.compose.material.icons.filled.AddChart
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.work.WorkInfo
 import com.example.siceproyect.data.KardexCompleto
-import com.example.siceproyect.data.KardexMateria
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+@Composable
+fun KardexScreen(viewModel: SNViewModel) {
+    val context = LocalContext.current
+    val uiState = viewModel.uiState
+    val matricula = uiState.alumno?.matricula ?: return
+    val modEducativo = uiState.alumno?.modEducativo?.toString() ?: return
+
+    LaunchedEffect(Unit) {
+        viewModel.cargarKardex(context, matricula, modEducativo)
+    }
+
+    val workInfos by viewModel.observarFetchKardexWorker(context).observeAsState(emptyList())
+
+    LaunchedEffect(workInfos) {
+        val fetchInfo = workInfos.firstOrNull()
+        if (fetchInfo?.state == WorkInfo.State.SUCCEEDED) {
+            viewModel.cargarKardex(context, matricula, modEducativo)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        uiState.fechaActualizacionKardex?.let { timestamp ->
+            val fecha = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(timestamp))
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Última actualización: $fecha",
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(16.dp, 8.dp)
+                )
+            }
+        }
+
+        // 🔥 CORRECCIÓN: Quitamos el if() para que pueda mostrar "Cargando..."
+        KardexSection(kardex = uiState.kardex)
+    }
+}
 
 @Composable
 fun KardexSection(kardex: KardexCompleto?) {
@@ -36,89 +80,64 @@ fun KardexSection(kardex: KardexCompleto?) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // --- RESUMEN GENERAL ---
         item {
             Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceAround
+                ) {
+                    ResumenItem("Promedio", "${kardex.resumen.promedioGral}", Icons.Default.Star)
+                    ResumenItem("Créditos", "${kardex.resumen.cdtsAcumulados}", Icons.Default.AddChart)
+                    ResumenItem("Aprobadas", "${kardex.resumen.avance}", Icons.Default.TrendingUp)
+                }
+            }
+        }
+
+        items(kardex.materias) { materia ->
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    Text(
-                        "Resumen Académico",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                        ResumenItem("Promedio", "${kardex.resumen.promedioGral}", Icons.Default.Star)
-                        ResumenItem("Créditos", "${kardex.resumen.cdtsAcumulados}", Icons.Default.AddChart)
-                        ResumenItem("Avance", "${kardex.resumen.avance}%", Icons.Default.TrendingUp)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(
+                            text = materia.materia,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Surface(
+                            shape = CircleShape,
+                            color = if (materia.calif >= 70) MaterialTheme.colorScheme.secondaryContainer
+                            else MaterialTheme.colorScheme.errorContainer,
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Text(
+                                text = "${materia.calif}",
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (materia.calif >= 70) MaterialTheme.colorScheme.onSecondaryContainer
+                                else MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
                     }
-                }
-            }
-        }
 
-        item {
-            Text(
-                "Materias Cursadas",
-                style = MaterialTheme.typography.labelLarge,
-                modifier = Modifier.padding(vertical = 8.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp).alpha(0.3f))
 
-        // --- LISTA DE MATERIAS ---
-        items(kardex.materias) { materia ->
-            MateriaKardexCard(materia)
-        }
-    }
-}
-
-@Composable
-fun MateriaKardexCard(materia: KardexMateria) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = materia.materia,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                // Burbuja de calificación
-                Surface(
-                    color = if (materia.calif >= 70) MaterialTheme.colorScheme.secondaryContainer
-                    else MaterialTheme.colorScheme.errorContainer,
-                    shape = CircleShape
-                ) {
-                    Text(
-                        text = materia.calif.toString(),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (materia.calif >= 70) MaterialTheme.colorScheme.onSecondaryContainer
-                        else MaterialTheme.colorScheme.onErrorContainer
-                    )
-                }
-            }
-
-            HorizontalDivider(Modifier.padding(vertical = 8.dp).alpha(0.3f))
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text(materia.clvMat, style = MaterialTheme.typography.bodySmall)
-                    Text("${materia.periodo} ${materia.anio} Semestre: ${materia.semestre}", style = MaterialTheme.typography.bodySmall)
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(materia.acred, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-                    Text("${materia.cdts} Créditos", style = MaterialTheme.typography.bodySmall)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Column {
+                            Text(materia.clvMat, style = MaterialTheme.typography.bodySmall)
+                            Text("${materia.periodo} ${materia.anio} Semestre: ${materia.semestre}", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(materia.acred, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                            Text("${materia.cdts} Créditos", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
                 }
             }
         }
