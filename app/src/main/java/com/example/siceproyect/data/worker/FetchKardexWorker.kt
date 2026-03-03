@@ -23,11 +23,11 @@ class FetchKardexWorker(
             if (kardex != null) {
                 val jsonResult = Gson().toJson(kardex)
 
-                // 🔥 EL TRUCO: Guardamos en caché temporal para evadir el límite de 10KB de WorkManager
+                //Guardamos en caché temporal
                 val prefs = applicationContext.getSharedPreferences("WorkerCache", Context.MODE_PRIVATE)
                 prefs.edit().putString("KARDEX_TEMP", jsonResult).apply()
 
-                // Le mandamos al siguiente Worker la señal de que ya está listo
+                //Le mandamos al siguiente Worker la señal de que ya está listo
                 val outputData = workDataOf("KARDEX_READY" to true)
                 Result.success(outputData)
             } else {

@@ -18,9 +18,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// =====================================================================
-// ENVOLTURA INTELIGENTE (OFFLINE-FIRST)
-// =====================================================================
 @Composable
 fun UnidadesScreen(viewModel: SNViewModel) {
     val context = LocalContext.current
@@ -53,9 +50,6 @@ fun UnidadesScreen(viewModel: SNViewModel) {
     }
 }
 
-// =====================================================================
-// TU DISEÑO ORIGINAL (INTACTO)
-// =====================================================================
 @Composable
 fun UnidadesSection(materias: List<MateriaUnidades>) {
     LazyColumn(

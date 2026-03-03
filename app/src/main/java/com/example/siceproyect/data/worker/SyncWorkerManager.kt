@@ -8,7 +8,7 @@ import androidx.work.WorkManager
 
 fun lanzarSyncCargaAcademica(context: Context, matriculaControl: String) {
     val fetchRequest = OneTimeWorkRequestBuilder<FetchCargaWorker>()
-        .addTag("FETCH_CARGA_TAG") // Importante para monitorearlo en la UI
+        .addTag("FETCH_CARGA_TAG") //Importante para monitorearlo en la UI
         .build()
 
     val saveRequest = OneTimeWorkRequestBuilder<SaveCargaWorker>()
@@ -21,7 +21,7 @@ fun lanzarSyncCargaAcademica(context: Context, matriculaControl: String) {
             ExistingWorkPolicy.REPLACE,
             fetchRequest
         )
-        .then(saveRequest) // Encadenamiento: El Worker 1 le pasa datos al Worker 2 automáticamente
+        .then(saveRequest) //El Worker 1 le pasa datos al Worker 2 automáticamente
         .enqueue()
 }
 

@@ -97,12 +97,12 @@ fun HomeScreen(
             Box(modifier = Modifier.padding(innerPadding)) {
                 when (selectedSection) {
                     "Inicio" -> HomeContent(alumno)
-                    // 1. Agregamos el Elvis operator (?: emptyList()) a las listas
+                    //Agregamos el Elvis operator a las listas
                     "Finales" -> FinalesScreen(viewModel)
                     "Unidades" -> UnidadesScreen(viewModel)
                     "Kardex" -> KardexScreen(viewModel)
 
-                    // 2. LLAMAMOS A TU NUEVA PANTALLA CON WORKERS PARA LA CARGA
+                    //LLAMAMOS A PANTALLA CON WORKERS PARA LA CARGA
                     "Carga" -> CargaAcademicaScreen(viewModel)
 
                     else -> PlaceholderSection(selectedSection)

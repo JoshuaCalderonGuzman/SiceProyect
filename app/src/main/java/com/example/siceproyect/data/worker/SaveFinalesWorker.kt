@@ -29,7 +29,7 @@ class SaveFinalesWorker(
                 jsonData = jsonFinales,
                 ultimaActualizacion = System.currentTimeMillis()
             )
-            // ⚠️ OJO: Asegúrate de que este sea el nombre correcto de tu función en LocalRepository
+
             localRepository.insertCalifFinal(entity)
 
             prefs.edit().remove("FINALES_TEMP").apply()

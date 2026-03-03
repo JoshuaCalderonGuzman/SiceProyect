@@ -31,15 +31,15 @@ fun CargaAcademicaScreen(viewModel: SNViewModel) {
     // Solo cargamos si tenemos la matrícula del alumno
     if (matricula != null) {
 
-        // 1. Al entrar a la pantalla, pedimos la carga
+        //Al entrar a la pantalla, pedimos la carga
         LaunchedEffect(Unit) {
             viewModel.cargarCargaAcademica(context, matricula)
         }
 
-        // 2. Observamos al Worker 1 (Fetch)
+        //Observamos al Worker 1 (Fetch)
         val workInfos by viewModel.observarFetchCargaWorker(context).observeAsState(emptyList())
 
-        // 3. Si el Worker dice "SUCCEEDED" (Éxito), volvemos a leer de la BD
+        //Si el Worker dice "SUCCEEDED" (Éxito), volvemos a leer de la BD
         LaunchedEffect(workInfos) {
             val fetchInfo = workInfos.firstOrNull()
             if (fetchInfo?.state == WorkInfo.State.SUCCEEDED) {
@@ -50,7 +50,7 @@ fun CargaAcademicaScreen(viewModel: SNViewModel) {
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // 4. Etiqueta de Última Actualización (Requisito cumplido)
+        //Etiqueta de Última Actualización (Requisito cumplido)
         uiState.fechaActualizacionCarga?.let { timestamp ->
             val fechaFormateada = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(timestamp))
             Surface(
@@ -78,9 +78,6 @@ fun CargaAcademicaScreen(viewModel: SNViewModel) {
     }
 }
 
-// ------------------------------------------------------------------------
-// Tu UI de cartas original (intacta)
-// ------------------------------------------------------------------------
 @Composable
 fun CargaAcademicaSection(lista: List<MateriaCarga>) {
     if (lista.isEmpty()) return

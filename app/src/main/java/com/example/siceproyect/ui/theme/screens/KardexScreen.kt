@@ -58,7 +58,6 @@ fun KardexScreen(viewModel: SNViewModel) {
             }
         }
 
-        // 🔥 CORRECCIÓN: Quitamos el if() para que pueda mostrar "Cargando..."
         KardexSection(kardex = uiState.kardex)
     }
 }

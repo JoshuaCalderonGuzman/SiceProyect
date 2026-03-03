@@ -19,9 +19,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// =====================================================================
-// ENVOLTURA INTELIGENTE (OFFLINE-FIRST)
-// =====================================================================
 @Composable
 fun FinalesScreen(viewModel: SNViewModel) {
     val context = LocalContext.current
@@ -55,9 +52,6 @@ fun FinalesScreen(viewModel: SNViewModel) {
     }
 }
 
-// =====================================================================
-// TU DISEÑO ORIGINAL (INTACTO)
-// =====================================================================
 @Composable
 fun FinalesSection(calificaciones: List<CalificacionFinal>) {
     if (calificaciones.isEmpty()) {
@@ -87,9 +81,6 @@ fun FinalesSection(calificaciones: List<CalificacionFinal>) {
             // Placeholder si necesitas un header
         }
         items(calificaciones) { calif ->
-            // Tu diseño de tarjeta (No incluí el interior de la tarjeta en este snippet
-            // porque se cortaba en tu archivo, ¡pero tú tienes el código completo en tu Android Studio!)
-            // Asegúrate de dejar TU código de "items(calificaciones)" completo aquí.
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
                     Text(calif.materia, fontWeight = FontWeight.Bold)

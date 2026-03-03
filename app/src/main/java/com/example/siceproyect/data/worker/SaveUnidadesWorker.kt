@@ -29,7 +29,6 @@ class SaveUnidadesWorker(
                 jsonData = jsonUnidades,
                 ultimaActualizacion = System.currentTimeMillis()
             )
-            // ⚠️ OJO: Asegúrate de que este sea el nombre correcto en LocalRepository
             localRepository.insertCalifUnidades(entity)
 
             prefs.edit().remove("UNIDADES_TEMP").apply()

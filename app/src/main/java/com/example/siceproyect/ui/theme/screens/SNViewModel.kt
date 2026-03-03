@@ -121,14 +121,12 @@ class SNViewModel(
         uiState = SNUiState()
     }
 
-    // =========================================================================
-    // NUEVA FUNCIÓN: CARGA ACADÉMICA (OFFLINE FIRST)
-    // =========================================================================
+    //CARGA ACADÉMICA (OFFLINE FIRST)
     fun cargarCargaAcademica(context: Context, matricula: String) {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
 
-            // 1. Buscamos en Room primero (Sin Internet)
+            //Buscamos en Room primero (Sin Internet)
             val cargaLocal = localRepository.getCargaByControl(matricula)
 
             if (cargaLocal != null) {
@@ -146,7 +144,7 @@ class SNViewModel(
                 uiState = uiState.copy(isLoading = false)
             }
 
-            // 2. Mandamos a los Workers a buscar internet y actualizar la BD
+            //Mandamos a los Workers a buscar internet y actualizar la BD
             lanzarSyncCargaAcademica(context, matricula)
         }
     }
@@ -154,7 +152,7 @@ class SNViewModel(
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
 
-            // 1. Buscar en Room
+            // Buscar en Room
             val kardexLocal = localRepository.getKardexByControl(matricula)
 
             if (kardexLocal != null) {
@@ -168,19 +166,17 @@ class SNViewModel(
                 uiState = uiState.copy(isLoading = false)
             }
 
-            // 2. Lanzar Workers
+            //Lanzar Workers
             com.example.siceproyect.data.worker.lanzarSyncKardex(context, matricula, modEducativo)
         }
     }
 
-    // =========================================================================
-    // CALIFICACIONES FINALES
-    // =========================================================================
+    //CALIFICACIONES FINALES
     fun cargarFinales(context: Context, matricula: String, modEducativo: String) {
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
 
-            // 1. Buscar en Room
+            //Buscar en Room
             val finalesLocal = localRepository.getCalifFinalByControl(matricula)
 
             if (finalesLocal != null) {
@@ -196,7 +192,7 @@ class SNViewModel(
                 uiState = uiState.copy(isLoading = false)
             }
 
-            // 2. Lanzar Workers
+            //Lanzar Workers
             com.example.siceproyect.data.worker.lanzarSyncFinales(context, matricula, modEducativo)
         }
     }
@@ -210,7 +206,7 @@ class SNViewModel(
         viewModelScope.launch {
             uiState = uiState.copy(isLoading = true)
 
-            // 1. Buscar en Room
+            //Buscar en Room
             val unidadesLocal = localRepository.getCalifUnidadesByControl(matricula)
 
             if (unidadesLocal != null) {
@@ -226,7 +222,7 @@ class SNViewModel(
                 uiState = uiState.copy(isLoading = false)
             }
 
-            // 2. Lanzar Workers
+            //Lanzar Workers
             com.example.siceproyect.data.worker.lanzarSyncUnidades(context, matricula)
         }
     }
@@ -243,7 +239,7 @@ class SNViewModel(
             .getWorkInfosByTagLiveData("FETCH_CARGA_TAG")
     }
 
-    // FACTORY (ACTUALIZADO PARA INYECTAR LOCAL REPOSITORY)
+    // FACTORY (PARA INYECTAR LOCAL REPOSITORY)
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

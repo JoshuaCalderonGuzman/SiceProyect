@@ -12,13 +12,13 @@ class SaveKardexWorker(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        // Validamos que el primer Worker haya terminado exitosamente
+        //Validamos que el primer Worker haya terminado exitosamente
         val isReady = inputData.getBoolean("KARDEX_READY", false)
         if (!isReady) return Result.failure()
 
         val control = inputData.getString("CONTROL") ?: return Result.failure()
 
-        // 🔥 RECUPERAMOS EL JSON GIGANTE DEL CACHÉ
+        //RECUPERAMOS EL JSON DEL CACHÉ
         val prefs = applicationContext.getSharedPreferences("WorkerCache", Context.MODE_PRIVATE)
         val jsonKardex = prefs.getString("KARDEX_TEMP", null) ?: return Result.failure()
 
@@ -33,7 +33,7 @@ class SaveKardexWorker(
             )
             localRepository.insertKardex(entity)
 
-            // Limpiamos el caché temporal
+            //Limpiamos el caché temporal
             prefs.edit().remove("KARDEX_TEMP").apply()
 
             Result.success()

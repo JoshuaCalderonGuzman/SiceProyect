@@ -16,20 +16,20 @@ class LoginSyncWorker(
             val control = inputData.getString("control")!!
             val nip = inputData.getString("nip")!!
 
-            // 🔹 Crear el AppContainer real de tu app
+            //Crear el AppContainer real de tu app
             val container = DefaultAppContainer(applicationContext)
 
-            // 🔹 Obtener el repositorio
+            //Obtener el repositorio
             val repo = container.snRepository
 
-            // 🔹 Paso 1: hacer login
+            //Paso 1: hacer login
             val loginResult = repo.acceso(control, nip)
 
             if (!loginResult.success) {
                 return@withContext Result.failure()
             }
 
-            // 🔹 Paso 2: obtener datos del alumno
+            //Paso 2: obtener datos del alumno
             val alumno = repo.alumnoDatos()
 
 

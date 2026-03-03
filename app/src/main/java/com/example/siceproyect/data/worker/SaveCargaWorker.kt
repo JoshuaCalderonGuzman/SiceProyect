@@ -12,7 +12,7 @@ class SaveCargaWorker(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        // Recibe los datos del Worker 1
+        //Recibe los datos del Worker 1
         val jsonCarga = inputData.getString("CARGA_JSON") ?: return Result.failure()
         val control = inputData.getString("CONTROL") ?: return Result.failure()
 
@@ -26,7 +26,7 @@ class SaveCargaWorker(
                 ultimaActualizacion = System.currentTimeMillis()
             )
 
-            // Guarda en la base de datos local
+            //Guarda en la base de datos local
             localRepository.insertCarga(entity)
             Result.success()
         } catch (e: Exception) {
