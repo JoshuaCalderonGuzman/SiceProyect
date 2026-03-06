@@ -50,6 +50,7 @@ class SNViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
+
     var uiState by mutableStateOf(SNUiState())
         private set
 

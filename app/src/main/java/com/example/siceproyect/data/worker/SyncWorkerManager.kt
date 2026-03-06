@@ -61,7 +61,7 @@ fun lanzarSyncFinales(context: Context, matriculaControl: String, modEducativo: 
         .enqueue()
 }
 
-// PARA CALIFICACIONES POR UNIDADES
+//PARA CALIFICACIONES POR UNIDADES
 fun lanzarSyncUnidades(context: Context, matriculaControl: String) {
     val fetchRequest = OneTimeWorkRequestBuilder<FetchUnidadesWorker>()
         .setInputData(androidx.work.Data.Builder()

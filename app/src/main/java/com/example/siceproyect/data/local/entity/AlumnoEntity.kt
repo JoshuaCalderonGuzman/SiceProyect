@@ -6,6 +6,6 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "alumno")
 data class AlumnoEntity(
     @PrimaryKey val control: String,
-    val jsonData: String, // <-- Cambiado para guardar todo el perfil en JSON
+    val jsonData: String,
     val ultimaActualizacion: Long
 )

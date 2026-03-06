@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
+    <permission
+        android:name="com.example.siceproyect.permission.READ_DATA"
+        android:protectionLevel="normal" />
+
+    <permission
+        android:name="com.example.siceproyect.permission.WRITE_DATA"
+        android:protectionLevel="normal" />
 
     <application
         android:name=".SICENETApplication"
@@ -13,6 +20,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.SiceProyect">
+        <provider
+            android:name=".provider.CargaKardexProvider"
+            android:authorities="com.example.siceproyect.provider"
+            android:exported="true"
+            android:readPermission="com.example.siceproyect.permission.READ_DATA"
+            android:writePermission="com.example.siceproyect.permission.WRITE_DATA" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

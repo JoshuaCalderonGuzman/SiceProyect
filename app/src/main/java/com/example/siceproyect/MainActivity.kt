@@ -15,12 +15,14 @@ import com.example.siceproyect.ui.theme.screens.HomeScreen
 import com.example.siceproyect.ui.theme.screens.LoginScreen
 import com.example.siceproyect.ui.theme.screens.SNViewModel
 
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             SiceProyectTheme {
+
                 val snViewModel: SNViewModel =
                     viewModel(factory = SNViewModel.Factory)
                 val uiState = snViewModel.uiState
